@@ -1835,6 +1835,9 @@ input, select, textarea {
 					background-color: #006599;
 				}
 
+				ul.social li a.fa-stackexchange {
+					background-color: #006599;
+				}
 				ul.social li a.fa-tumblr {
 					background-color: #51718A;
 				}
@@ -2039,13 +2042,14 @@ input, select, textarea {
 		background-color: #282828;
 		text-align: center;
 		position: fixed;
-		left: 0;
+		left: 15%;
 		top: 0;
-		width: 100%;
+		width: 70%;
 		z-index: 10000;
 		cursor: default;
-		height: 3.5em;
-		line-height: 3.5em;
+		height: 1.5em;
+		line-height: 1.5em;
+			border-radius: 5px;
 	}
 
 		#nav ul {
@@ -2070,11 +2074,11 @@ input, select, textarea {
 			text-decoration: none;
 			outline: 0;
 			font-weight: 600;
-			border-radius: 8px;
+			border-radius: 5px;
 			color: #fff;
-			height: 2.5em;
-			line-height: 2.5em;
-			padding: 0 1.25em;
+			height: 1.5em;
+			line-height: 1.5em;
+			padding: 0 1.0em;
 		}
 
 			#nav a:hover {
