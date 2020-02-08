@@ -83,7 +83,7 @@ input, select, textarea {
 	}
 
 	body {
-		padding-top: 3.5em;
+		padding-top: 2em;
 	}
 
 		body.is-preload *, body.is-preload *:before, body.is-preload *:after {
@@ -125,6 +125,7 @@ input, select, textarea {
 	b, strong {
 		font-weight: 600;
 		color: #3e3e3e;
+					<li><a href="docs/CV_Florian_Lassenay.pdf">CV</a></li>
 	}
 
 	i, em {
@@ -203,6 +204,9 @@ input, select, textarea {
 	p, ul, ol, dl, table {
 		margin-bottom: 2em;
 	}
+    div.formations {
+        height: 200px;
+    }
 
 	header {
 		margin: 0 0 3em 0;
@@ -1060,6 +1064,11 @@ input, select, textarea {
 					order: -1;
 				}
 
+				.row > .formations {
+                    height: 800px;
+                    background-color: powderblue;
+				}
+
 				.row > .col-1-medium {
 					width: 8.33333%;
 				}
@@ -1835,7 +1844,7 @@ input, select, textarea {
 					background-color: #006599;
 				}
 
-				ul.social li a.fa-stackexchange {
+				ul.social li a.fa-stack {
 					background-color: #006599;
 				}
 				ul.social li a.fa-tumblr {
@@ -1847,6 +1856,10 @@ input, select, textarea {
 				}
 
 				ul.social li a.fa-github {
+					background-color: #FAFAFA;
+				}
+
+				ul.social li a.fa-stack {
 					background-color: #FAFAFA;
 				}
 
@@ -2047,8 +2060,8 @@ input, select, textarea {
 		width: 70%;
 		z-index: 10000;
 		cursor: default;
-		height: 1.5em;
-		line-height: 1.5em;
+		height: 2.0em;
+		line-height: 2em;
 			border-radius: 5px;
 	}
 
@@ -2075,7 +2088,7 @@ input, select, textarea {
 			outline: 0;
 			font-weight: 600;
 			border-radius: 5px;
-			color: #fff;
+			color: #bbb;
 			height: 1.5em;
 			line-height: 1.5em;
 			padding: 0 1.0em;
@@ -2235,7 +2248,7 @@ input, select, textarea {
 			}
 
 				#top .image {
-					margin: 0 auto 2em auto;
+					margin: 0 auto 1.5em auto;
 				}
 
 	}
