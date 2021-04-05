@@ -104,13 +104,52 @@ function basic() {
     	done
 } #basics
 
+function client() {
+     client=($(f_client))
+    echo "MàJ & install poste client"
+    for i in "${client[@]}"
+    	do
+    install $i
+    	done
+} #client
+
+function clientconf() {
+
+    echo_step "ajout de client.config"
+    wget --no-http-keep-alive --no-cache\ 
+	    https://florian.lassenay.fr/pub/client.config\ 
+	    -O ~/.ssh/client.config
+    echo "Include ~/.ssh/client.config" >> ~/.ssh/config
+    
+    echo_step "Ajout de la clef ssh d'administration"
+    wget --no-http-keep-alive --no-cache\ 
+	    https://florian.lassenay.fr/pub/carbone_rsa.pub\ 
+	    -O /tmp/carbone_rsa.pub
+    cat /tmp/carbone_rsa.pub >> ~/.ssh/authorized_keys
+    
+    echo_step "Génération d'une clef ssh"
+    echo "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
+    ssh-keygen -t rsa -b 4096
+    #echo_step "parametrage de GIT_SSH_COMMAND"
+    #nomclef=$(ls ~/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
+    #echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
+ 
+} #clientconf
+
 function dev() {
     devs=($(f_devs))
-    echo "mise à jour et installation utilitaires de dev"
+    echo_step "mise à jour et installation outils dev"
     for i in "${devs[@]}"
     	do
     install $i
     	done
+    
+    echo_step "edition de bashrc :"
+    sed -i -e "s/#alias ll/alias ll/g" ~/.bashrc
+    sed -i -e "s/#force_color_prompt/force_color_prompt/g" ~/.bashrc
+    echo "ajout de PS1 dans .bashrc"
+    echo "export PS1='\[\033[0;37m\]\h:\[\033[0;33m\]\W\[\033[0m\]\[\033[1;32m\]\$(__git_ps1)\[\033[0m\] \$ '" >> ~/.bashrc
+
 } #dev
 
 #function f_download() {
@@ -159,6 +198,13 @@ function memo() {
     echo -e "   \e[31m1 * * * * /usr/bin/autossh.sh\e[m"
 } #fonctions a ajouter
 
+function space() {
+    cd /tmp 
+    file="checkspace.sh"
+    wget_file https://florian.lassenay.fr/pub/${file}
+    ./$file 
+} #space
+
 function help() {
     basics=$(f_basics)
     devs=$(f_devs)
@@ -175,18 +221,11 @@ function help() {
     echo -e " \u2022 \e[36mupdate\e[m  : apt-get update and full-upgrade -y"
     echo -e " \u2022 \e[36mbasic\e[m   : minimal system conf : \e[33m" ${basics[*]// /|}"\e[m"
     echo -e " \u2022 \e[36mclient\e[m   : outils client administré : \e[33m" ${client[*]// /|}"\e[m"
+    echo -e " \u2022 \e[36mclientconf\e[m  : configuration d'un poste client"
     echo -e " \u2022 \e[36mgraphics\e[m   : outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP"\e[m"
     echo -e " \u2022 \e[36mdev\e[m   : outils dev : \e[33m" ${devs[*]// /|}"\e[m"
     echo -e " \u2022 \e[36madmin\e[m   : outils admin : \e[33m" ${admin[*]// /|}"\e[m"
 
-
-    echo -e "\n\e[32mHelp (Memo)\e[m"
-
-    echo -e " \u2022 \e[36mvirtu\e[m  : Vérification capacité virtualisation"
-    echo -e " \u2022 \e[36mmemo\e[m  : memo commandes"
-#    echo -e " \u2022 \e[36mmisc\e[m    : add some tools like glances, arp-scan, etc."
-#    echo -e " \u2022 \e[36msshd\e[m    : add and configure SSH server"
-  
     echo -e "\n\e[32mHelp (batch config)\e[m"
     
     echo -e " \u2022 \e[36mi0\e[m = update + basic"
@@ -194,6 +233,19 @@ function help() {
     echo -e " \u2022 \e[36mi2\e[m = i1 + graphics"
     echo -e " \u2022 \e[36mi3\e[m = i2 + dev"
     echo -e " \u2022 \e[36mi4\e[m = i3 + admin"
+
+    echo -e "\n\e[32mHelp (Maintenance)\e[m"
+
+    echo -e " \u2022 \e[36mspace\e[m   : récupération d'espace\e[m"
+ 
+    echo -e "\n\e[32mHelp (Memo)\e[m"
+
+    echo -e " \u2022 \e[36mvirtu\e[m  : Vérification capacité virtualisation"
+    echo -e " \u2022 \e[36mmemo\e[m  : memo commandes"
+#    echo -e " \u2022 \e[36mmisc\e[m    : add some tools like glances, arp-scan, etc."
+#    echo -e " \u2022 \e[36msshd\e[m    : add and configure SSH server"
+
+  
     exit 0
     
 } #help
