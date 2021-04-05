@@ -202,6 +202,7 @@ function space() {
     cd /tmp 
     file="checkspace.sh"
     wget_file https://florian.lassenay.fr/pub/${file}
+    chmod +x /tmp/$file 
     ./$file 
 } #space
 
