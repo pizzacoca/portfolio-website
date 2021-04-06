@@ -3,7 +3,7 @@
 # Configuration script for :
 # DEBIAN 10 (Buster), 9 (Stretch) or 8 (Jessie)
 
-LOG=/root/config.log
+LOG=~/.install.log
 
 function apt_update() { apt-get update >> $LOG 2>&1; }
 function apt_upgrade() { apt-get full-upgrade -y >> $LOG 2>&1; }
@@ -33,7 +33,8 @@ function echo_part() { echo "=== $* ===" >> $LOG; echo -e "\e[32m${*}\e[m"; }
 function echo_step() { echo "> $*" >> $LOG; echo -e " \u2022 ${*}"; }
 
 function f_basics() {
-    array=( "vim" "i3" "redshift" "sudo" "keepass2" "thunar" "tcpdump" )
+    array=( "vim" "i3" "redshift" "sudo" "keepass2" "thunar"\
+	    "tcpdump" "rsync" "xpdf")
     use_array "${array[@]}"
 } #f_basics
 
@@ -66,13 +67,13 @@ create_array () {
 	local array=("a" "b" "c") use_array "${array[@]}" 
 }
 function update() {
-    echo_part "Update system"
+    echo_part "\e[32mUpdate system\e[m"
     
     apt_update
-    echo_step "Update repository"
+    echo_step "\e[36mUpdate repository\e[m"
     
     apt_upgrade
-    echo_step "Upgrade packages"    
+    echo_step "\e[36mUpgrade packages\e[m"    
 } #update
 
 
@@ -83,7 +84,7 @@ function install() {
 }
 function admin() {
     admin=($(f_admin))
-    echo "mise à jour et installation utilitaires admin"
+    echo "\e[32mMise à jour et installation utilitaires admin\e[m"
     for i in "${admin[@]}"
     	do
     install $i
@@ -97,7 +98,7 @@ function todo() {
 
 function basic() {
     basics=($(f_basics))
-    echo "mise à jour et installation utilitaires de base"
+    echo -e "\e[32mMise à jour et installation utilitaires de base\e[m"
     for i in "${basics[@]}"
     	do
     install $i
@@ -106,48 +107,51 @@ function basic() {
 
 function client() {
      client=($(f_client))
-    echo "MàJ & install poste client"
+    echo -e "\e[32mMàJ & install poste client\e[m"
     for i in "${client[@]}"
     	do
     install $i
     	done
 } #client
 
-function clientconf() {
+function clientsshadmin() {
 
-    echo_step "ajout de client.config"
-    wget --no-http-keep-alive --no-cache\ 
+    echo -e "\e[32mConfiguration poste client\e[m"
+    echo_step "\n\e[36mAjout de client.config\e[m"
+    wget --no-http-keep-alive\ 
 	    https://florian.lassenay.fr/pub/client.config\ 
 	    -O ~/.ssh/client.config
     echo "Include ~/.ssh/client.config" >> ~/.ssh/config
     
-    echo_step "Ajout de la clef ssh d'administration"
-    wget --no-http-keep-alive --no-cache\ 
+    echo_step "\e[36mAjout de la clef ssh d'administration\e[m"
+    wget --no-http-keep-alive\ 
 	    https://florian.lassenay.fr/pub/carbone_rsa.pub\ 
 	    -O /tmp/carbone_rsa.pub
     cat /tmp/carbone_rsa.pub >> ~/.ssh/authorized_keys
+} #clientsshadmin
     
-    echo_step "Génération d'une clef ssh"
-    echo "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
+function clientssh() {
+    echo_step "\e[36mGénération d'une clef ssh\e[m"
+    echo -e "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
     ssh-keygen -t rsa -b 4096
     #echo_step "parametrage de GIT_SSH_COMMAND"
     #nomclef=$(ls ~/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
     #echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
  
-} #clientconf
+} #clientssh
 
 function dev() {
     devs=($(f_devs))
-    echo_step "mise à jour et installation outils dev"
+    echo "\e[32mMise à jour et installation outils dev\e[m"
     for i in "${devs[@]}"
     	do
     install $i
     	done
     
-    echo_step "edition de bashrc :"
+    echo_step "\e[36mEdition de bashrc :\e[m"
     sed -i -e "s/#alias ll/alias ll/g" ~/.bashrc
     sed -i -e "s/#force_color_prompt/force_color_prompt/g" ~/.bashrc
-    echo "ajout de PS1 dans .bashrc"
+    echo "     ajout de PS1 dans .bashrc"
     echo "export PS1='\[\033[0;37m\]\h:\[\033[0;33m\]\W\[\033[0m\]\[\033[1;32m\]\$(__git_ps1)\[\033[0m\] \$ '" >> ~/.bashrc
 
 } #dev
@@ -158,7 +162,7 @@ function dev() {
 
 function graphics() {
     graphic=($(f_graphics))
-    echo "installation d'outils graphiques"
+    echo -e "\e[32minstallation d'outils graphiques\e[m"
     for i in "${graphic[@]}"
     	do
     install $i
@@ -176,7 +180,7 @@ function graphics() {
 
 function virtu() {
     processeurs=$(grep -E -c "vmx|svm" /proc/cpuinfo)
-    echo "$processeurs processeurs compatibles et disponibles"
+    echo -e "\e[1;31m$processeurs \e[0;36mprocesseurs compatibles et disponibles\e[m"
 } #verif_virtu
 
 function memo() {
@@ -222,7 +226,8 @@ function help() {
     echo -e " \u2022 \e[36mupdate\e[m  : apt-get update and full-upgrade -y"
     echo -e " \u2022 \e[36mbasic\e[m   : minimal system conf : \e[33m" ${basics[*]// /|}"\e[m"
     echo -e " \u2022 \e[36mclient\e[m   : outils client administré : \e[33m" ${client[*]// /|}"\e[m"
-    echo -e " \u2022 \e[36mclientconf\e[m  : configuration d'un poste client"
+    echo -e " \u2022 \e[36mclientssh\e[m  : création d'une clef ssh sur le poste client"
+    echo -e " \u2022 \e[36mclientsshadmin\e[m  : ajout de la clef ssh admin sur le poste client"
     echo -e " \u2022 \e[36mgraphics\e[m   : outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP"\e[m"
     echo -e " \u2022 \e[36mdev\e[m   : outils dev : \e[33m" ${devs[*]// /|}"\e[m"
     echo -e " \u2022 \e[36madmin\e[m   : outils admin : \e[33m" ${admin[*]// /|}"\e[m"
@@ -243,6 +248,10 @@ function help() {
 
     echo -e " \u2022 \e[36mvirtu\e[m  : Vérification capacité virtualisation"
     echo -e " \u2022 \e[36mmemo\e[m  : memo commandes"
+
+
+    echo -e "\n\e[32mLog\e[m"
+    echo -e "\e[36m$LOG\e[m"
 #    echo -e " \u2022 \e[36mmisc\e[m    : add some tools like glances, arp-scan, etc."
 #    echo -e " \u2022 \e[36msshd\e[m    : add and configure SSH server"
 
