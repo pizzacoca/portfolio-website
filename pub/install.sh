@@ -3,7 +3,7 @@
 # Configuration script for :
 # DEBIAN 10 (Buster), 9 (Stretch) or 8 (Jessie)
 
-LOG=~/.install.log
+LOG=~/.config/install.log
 
 function apt_update() { apt-get update >> $LOG 2>&1; }
 function apt_upgrade() { apt-get full-upgrade -y >> $LOG 2>&1; }
