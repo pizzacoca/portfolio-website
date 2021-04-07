@@ -134,8 +134,9 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-#bindsym $mod+Shift+e exec i3-msg exit
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec i3-msg exit
+
+#bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
 focus_follows_mouse yes
 # resize window (you can also use the mouse for that)
@@ -213,14 +214,6 @@ colors {
         status_command i3status --config ~/.config/i3/i3status.conf
 }
 
-# Increase brightness
-bindsym XF86MonBrightnessUp exec xbacklight -inc 5 && xbacklight > ~/.config/brightness && $refresh_i3status
-# Decrease brightness
-bindsym XF86MonBrighnessDown exec xbacklight -dec 5 && xbacklight > ~/.config/brightness && $refresh_i3status
-#
-set $refresh_i3status killall -SIGUSR1 i3status
-
-#bindsym $mod+shift+o exec i3lock --color 000000
 bindsym $mod+shift+o exec i3lock --color=000000
 exec xrandr --dpi 100
 #exec --no-startup-id i3-msg 'workspace 1; exec /usr/bin/firefox'
