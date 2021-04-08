@@ -16,18 +16,20 @@ function apt_install() {
 function echo_part() { echo "=== $* ===" >> $LOG; echo -e "\e[0;32m${*}\e[m"; }
 function echo_step() { echo "==> $* ==" >> $LOG; echo -e " \u2022 \e[0;36m${*}\e[m"; }
 function echo_point() { echo "=> $* =" >> $LOG; echo -e "   \e[0;32m${*}\e[m"; }
-function echo_OK() { echo "=> $* =" >> $LOG; echo -e "   \e[1;32m${*}\e[m"; }
-function echo_KO() { echo "=> $* =" >> $LOG; echo -e "   \e[1;31m${*}\e[m"; }
+function echo_ok() { echo "=> $* =" >> $LOG; echo -e "   \e[1;32m${*}\e[m"; }
+function echo_ko() { echo "=> $* =" >> $LOG; echo -e "   \e[1;31m${*}\e[m"; }
 
 function wget_file() { 
     echo_step "\e[1;34mDownloading\e[m \e[0;33m$PWD/${file}\e[m"
     echo "wget_file $*" >> $LOG; wget -nc $* >> $LOG 2&>1
-    echo_point "\e[1;32mOK\e[m"
+    echo_ok "\e[1;32mOK\e[m"
 } #wget_file
 
 function test(){
-	echo_part "ok"
+    echo_part "ok"
 	echo_step "ok"
+	echo_ok "ok"
+	echo_ko "KO"
 	echo_point "\e[1;32mok\e[m"
 } #test
 
@@ -47,7 +49,7 @@ function dpkg_file() {
 
 function f_basics() {
     array=( "vim" "i3" "redshift" "sudo" "keepass2" "thunar"\
-	    "tcpdump" "rsync" "xpdf" )
+	    "tcpdump" "rsync" "xpdf" "pass" "sshpass" "gpg")
     use_array "${array[@]}"
 } #f_basics
 
@@ -124,28 +126,46 @@ function client() {
 function sshadmin() {
 
     echo_part "Configuration poste client"
-    echo_step "\nAjout de client.config"
-    wget --no-http-keep-alive\ 
-	    https://florian.lassenay.fr/pub/client.config\ 
-	    -O ~/.ssh/client.config
+    echo_step "Ajout de client.config"
+    wget_file https://florian.lassenay.fr/pub/confs/client/client.config -O ~/.ssh/client.config
     echo "Include ~/.ssh/client.config" >> ~/.ssh/config
 
-    echo_step "\e[36mAjout des clefs ssh d'administration\e[m"
+    echo_part "Ajout des clefs ssh d'administration"
     admin=( "carbone_rsa.pub" "pizzacoca_rsa.pub" ) 
+    echo "Include ~/.ssh/client.config" >> ~/.ssh/config
     for i in "${admin[@]}"
     	do
-    wget https://florian.lassenay.fr/pub/admin/$i -O /tmp/$i
+    wget_file https://florian.lassenay.fr/pub/admin/$i -O /tmp/$i
     cat /tmp/$i >> ~/.ssh/authorized_keys
+    echo_ok "$i ajoutée"
     	done
 } #clientsshadmin
    
-function configssh() {
-    echo "test"
-} #configssh
+function savessh() {
+    echo_step "Sauvegarde de la clef ssh"
+    tar -cvf /tmp/${HOSTNAME} ~/.ssh/${HOSTNAME}_rsa ~/.ssh/${HOSTNAME}_rsa.pub
+    gpg -c /tmp/${HOSTNAME}
+
+    wget_file https://florian.lassenay.fr/pub/admin/crgpg -O /tmp/crgpg
+    wget_file https://florian.lassenay.fr/pub/admin/crpgpg -O /tmp/crpgpg
+    gpg -d /tmp/clrgpg > ~/.ssh/client_rsa
+    
+    export SSHPASS=$(gpg -d /tmp/crpgpg)
+    sshpass -e scp -i ~/.ssh/client_rsa /tmp/${HOSTNAME}.gpg client@ponos.lassenay.fr:ssh_clients/ 
+    #sshpass -e scp -i ~/.ssh/client_rsa ~/.ssh/${HOSTNAME}_rsa client@ponos.lassenay.fr:ssh_clients/ 
+    #sshpass -e scp -i ~/.ssh/client_rsa ~/.ssh/${HOSTNAME}_rsa.pub client@ponos.lassenay.fr:ssh_clients/ 
+    unset SSHPASS
+    rm /tmp/crgpg
+    rm /tmp/crpgpg
+    rm ~/.ssh/client_rsa
+    rm /tmp/${HOSTNAME}.gpg /tmp/${HOSTNAME}
+} #savessh
+
 function sshclient() {
     echo_step "\e[36mGénération d'une clef ssh\e[m"
     echo_point -e "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
     ssh-keygen -t rsa -b 4096
+    savessh
     #echo_step "parametrage de GIT_SSH_COMMAND"
     #nomclef=$(ls ~/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
     #echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
@@ -235,22 +255,22 @@ function help() {
    
     echo_part "\nHelp (single config)"
     
-    echo_step "update\e[m  : apt-get update and full-upgrade -y"
-    echo_step " basic\e[m   : minimal system conf : \e[33m" ${basics[*]// /|}
-    echo_step "client\e[m   : outils client administré : \e[33m" ${client[*]// /|}
-    echo_step "sshclient\e[m  : création d'une clef ssh sur le poste client"
-    echo_step "sshadmin\e[m  : ajout de la clef ssh admin sur le poste client"
-    echo_step "graphics\e[m   : outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
-    echo_step "dev\e[m   : outils dev : \e[33m" ${devs[*]// /|}
-    echo_step "admin\e[m   : outils admin : \e[33m" ${admin[*]// /|}
+    echo_step "update    :\e[m apt-get update and full-upgrade -y"
+    echo_step " basic    :\e[m minimal system conf : \e[33m" ${basics[*]// /|}
+    echo_step "client    :\e[m outils client administré : \e[33m" ${client[*]// /|}
+    echo_step "sshclient :\e[m création d'une clef ssh sur le poste client"
+    echo_step "sshadmin  :\e[m ajout de la clef ssh admin sur le poste client"
+    echo_step "graphics  :\e[m outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
+    echo_step "dev :\e[m   : outils dev : \e[33m" ${devs[*]// /|}
+    echo_step "admin     :\e[m : outils admin : \e[33m" ${admin[*]// /|}
 
     echo_part "\nHelp (batch config)"
     
-    echo_step "i0\e[m = update + basic"
-    echo_step "mi1\e[m = i0 + client"
-    echo_step "i2\e[m = i1 + graphics"
-    echo_step "i3\e[m = i2 + dev"
-    echo_step "i4\e[m = i3 + admin"
+    echo_step "i0 =\e[m update + basic"
+    echo_step "i1 =\e[m i0 + client"
+    echo_step "i2 =\e[m i1 + graphics"
+    echo_step "i3 =\e[m i2 + dev"
+    echo_step "i4 =\e[m i3 + admin"
 
     echo_part "\nHelp (Maintenance)"
 
