@@ -121,7 +121,7 @@ function client() {
     	done
 } #client
 
-function clientsshadmin() {
+function sshadmin() {
 
     echo_part "Configuration poste client"
     echo_step "\nAjout de client.config"
@@ -129,18 +129,20 @@ function clientsshadmin() {
 	    https://florian.lassenay.fr/pub/client.config\ 
 	    -O ~/.ssh/client.config
     echo "Include ~/.ssh/client.config" >> ~/.ssh/config
-    
-    echo_step "\e[36mAjout de la clef ssh d'administration\e[m"
-    wget --no-http-keep-alive\ 
-	    https://florian.lassenay.fr/pub/carbone_rsa.pub\ 
-	    -O /tmp/carbone_rsa.pub
-    cat /tmp/carbone_rsa.pub >> ~/.ssh/authorized_keys
+
+    echo_step "\e[36mAjout des clefs ssh d'administration\e[m"
+    admin=( "carbone_rsa.pub" "pizzacoca_rsa.pub" ) 
+    for i in "${admin[@]}"
+    	do
+    wget https://florian.lassenay.fr/pub/admin/$i -O /tmp/$i
+    cat /tmp/$i >> ~/.ssh/authorized_keys
+    	done
 } #clientsshadmin
    
 function configssh() {
     echo "test"
 } #configssh
-function clientssh() {
+function sshclient() {
     echo_step "\e[36mGénération d'une clef ssh\e[m"
     echo_point -e "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
     ssh-keygen -t rsa -b 4096
@@ -236,8 +238,8 @@ function help() {
     echo_step "update\e[m  : apt-get update and full-upgrade -y"
     echo_step " basic\e[m   : minimal system conf : \e[33m" ${basics[*]// /|}
     echo_step "client\e[m   : outils client administré : \e[33m" ${client[*]// /|}
-    echo_step "clientssh\e[m  : création d'une clef ssh sur le poste client"
-    echo_step "clientsshadmin\e[m  : ajout de la clef ssh admin sur le poste client"
+    echo_step "sshclient\e[m  : création d'une clef ssh sur le poste client"
+    echo_step "sshadmin\e[m  : ajout de la clef ssh admin sur le poste client"
     echo_step "graphics\e[m   : outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
     echo_step "dev\e[m   : outils dev : \e[33m" ${devs[*]// /|}
     echo_step "admin\e[m   : outils admin : \e[33m" ${admin[*]// /|}
