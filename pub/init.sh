@@ -7,11 +7,17 @@ LOG=~/.config/install.log
 
 function apt_update() { apt-get update >> $LOG 2>&1; }
 function apt_upgrade() { apt-get full-upgrade -y >> $LOG 2>&1; }
-function apt_install() { apt-get install $* -qy >> $LOG 2>&1; }
+function apt_install() { 
+    echo_step "Installing \e[33m$1"
+    apt-get install $* -qy >> $LOG 2>&1 
+    echo_point "\e[1;32mOK\e[m"
+} #apt_install
 
 function echo_part() { echo "=== $* ===" >> $LOG; echo -e "\e[0;32m${*}\e[m"; }
 function echo_step() { echo "==> $* ==" >> $LOG; echo -e " \u2022 \e[0;36m${*}\e[m"; }
 function echo_point() { echo "=> $* =" >> $LOG; echo -e "   \e[0;32m${*}\e[m"; }
+function echo_OK() { echo "=> $* =" >> $LOG; echo -e "   \e[1;32m${*}\e[m"; }
+function echo_KO() { echo "=> $* =" >> $LOG; echo -e "   \e[1;31m${*}\e[m"; }
 
 function wget_file() { 
     echo_step "\e[1;34mDownloading\e[m \e[0;33m$PWD/${file}\e[m"
@@ -39,10 +45,9 @@ function dpkg_file() {
     esac
 } #dpkg_file
 
-
 function f_basics() {
     array=( "vim" "i3" "redshift" "sudo" "keepass2" "thunar"\
-	    "tcpdump" "rsync" "xpdf")
+	    "tcpdump" "rsync" "xpdf" )
     use_array "${array[@]}"
 } #f_basics
 
@@ -84,18 +89,12 @@ function update() {
     echo_step "Upgrade packages"    
 } #update
 
-
-function install() {
-    echo_step "Installing \e[33m$1"
-    apt_install $1
-    echo_point "\e[1;32mOK\e[m"
-}
 function admin() {
     admin=($(f_admin))
     echo_step "Mise à jour et installation utilitaires admin"
     for i in "${admin[@]}"
     	do
-    install $i
+    apt_install $i
     	done
 } #admin
 function todo() {
@@ -109,7 +108,7 @@ function basic() {
     echo_part "Mise à jour et installation utilitaires de base"
     for i in "${basics[@]}"
     	do
-    install $i
+    apt_install $i
     	done
 } #basics
 
@@ -118,7 +117,7 @@ function client() {
     echo_part "MàJ & install poste client"
     for i in "${client[@]}"
     	do
-    install $i
+    apt_install $i
     	done
 } #client
 
@@ -137,7 +136,10 @@ function clientsshadmin() {
 	    -O /tmp/carbone_rsa.pub
     cat /tmp/carbone_rsa.pub >> ~/.ssh/authorized_keys
 } #clientsshadmin
-    
+   
+function configssh() {
+    echo "test"
+} #configssh
 function clientssh() {
     echo_step "\e[36mGénération d'une clef ssh\e[m"
     echo_point -e "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
@@ -153,7 +155,7 @@ function dev() {
     echo_part "Mise à jour et installation outils dev"
     for i in "${devs[@]}"
     	do
-    install $i
+    apt_install $i
     	done
     
     echo_step "\e[36mEdition de bashrc :\e[m"
@@ -173,7 +175,7 @@ function graphics() {
     echo_part "Installation d'outils graphiques"
     for i in "${graphic[@]}"
     	do
-    install $i
+    apt_install $i
     	done
 
     file="XnViewMP-linux-x64.deb"
