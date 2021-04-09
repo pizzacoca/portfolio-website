@@ -47,40 +47,45 @@ function dpkg_file() {
     esac
 } #dpkg_file
 
-function f_basics() {
+function f_packages() {
+    case $1 in
+basic)
     array=( "vim" "i3" "redshift" "sudo" "keepass2" "thunar"\
-	    "tcpdump" "rsync" "xpdf" "pass" "sshpass" "gpg")
-    use_array "${array[@]}"
-} #f_basics
-
-function f_client() {
-    array=( "openssh-server" "wireshark" "x2goserver" "x2goserver-session" )
-    use_array "${array[@]}"
-} #f_client
-
-function f_admin() {
-    array=( "net-tools" "wireshark" "x2goclient" )
-    use_array "${array[@]}"
-} #f_admin
-
-function f_devs() {
+	    "tcpdump" "rsync" "xpdf" "pass" "sshpass" "gpg" "nmap" )
+    ;;
+admin)
+    array=( "net-tools" "x2goclient" "nmap" )
+    ;;
+client)
+    array=( "openssh-server" "x2goserver" "x2goserver-session" )
+    ;;
+dev)
     array=( "git" "python3" "python3-pip" "virtualenv" "virtualenvwrapper" )
-    use_array "${array[@]}"
-} #f_devs
-
-function f_graphics() {
+    ;;
+graphic)
     array=( "kile" "dia" "gimp" )
+    ;;
+    esac
     use_array "${array[@]}"
-} #f_graphics
+    if [ $2 ]
+        then
+        for i in "${array[@]}"
+        	do
+        apt_install $i
+        	done
+    fi
+} #f_packages
 
 use_array () { 
 	 for idx in "$@"; 
 	 do echo "$idx" 
 	 done 
  } 
+
 create_array () { 
 	local array=("a" "b" "c") use_array "${array[@]}" 
 }
+
 function update() {
     echo_part "Update system"
     
@@ -92,13 +97,10 @@ function update() {
 } #update
 
 function admin() {
-    admin=($(f_admin))
     echo_step "Mise à jour et installation utilitaires admin"
-    for i in "${admin[@]}"
-    	do
-    apt_install $i
-    	done
+    f_packages admin 1
 } #admin
+
 function todo() {
     echo "x2goclient"
     echo "x2goserver"
@@ -106,22 +108,39 @@ function todo() {
 } #todo
 
 function basic() {
-    basics=($(f_basics))
     echo_part "Mise à jour et installation utilitaires de base"
-    for i in "${basics[@]}"
-    	do
-    apt_install $i
-    	done
+    f_packages basic 1
 } #basics
 
 function client() {
-     client=($(f_client))
     echo_part "MàJ & install poste client"
-    for i in "${client[@]}"
-    	do
-    apt_install $i
-    	done
+    f_packages client 1
 } #client
+
+function dev() {
+    echo_part "Mise à jour et installation outils dev"
+    f_packages dev 1
+    echo_step "\e[36mEdition de bashrc :\e[m"
+    sed -i -e "s/#alias ll/alias ll/g" ~/.bashrc
+    sed -i -e "s/#force_color_prompt/force_color_prompt/g" ~/.bashrc
+    echo_point "ajout de PS1 dans .bashrc"
+    echo "export PS1='\[\033[0;37m\]\h:\[\033[0;33m\]\W\[\033[0m\]\[\033[1;32m\]\$(__git_ps1)\[\033[0m\] \$ '" >> ~/.bashrc
+
+} #dev
+
+function graphics() {
+    echo_part "Installation applis graphiques disponibles dans les dépots officiels"
+    f_packages graphic 1
+    file="XnViewMP-linux-x64.deb"
+    cd /opt 
+    wget_file https://download.xnview.com/${file}
+    dpkg_file $file 
+    
+    file="blender-2.92.0-linux64.tar.xz"
+    wget_file https://download.xnview.com/${file}
+
+} # graphics
+
 
 function sshadmin() {
 
@@ -152,8 +171,6 @@ function savessh() {
     
     export SSHPASS=$(gpg -d /tmp/crpgpg)
     sshpass -e scp -i ~/.ssh/client_rsa /tmp/${HOSTNAME}.gpg client@ponos.lassenay.fr:ssh_clients/ 
-    #sshpass -e scp -i ~/.ssh/client_rsa ~/.ssh/${HOSTNAME}_rsa client@ponos.lassenay.fr:ssh_clients/ 
-    #sshpass -e scp -i ~/.ssh/client_rsa ~/.ssh/${HOSTNAME}_rsa.pub client@ponos.lassenay.fr:ssh_clients/ 
     unset SSHPASS
     rm /tmp/crgpg
     rm /tmp/crpgpg
@@ -171,45 +188,6 @@ function sshclient() {
     #echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
  
 } #clientssh
-
-function dev() {
-    devs=($(f_devs))
-    echo_part "Mise à jour et installation outils dev"
-    for i in "${devs[@]}"
-    	do
-    apt_install $i
-    	done
-    
-    echo_step "\e[36mEdition de bashrc :\e[m"
-    sed -i -e "s/#alias ll/alias ll/g" ~/.bashrc
-    sed -i -e "s/#force_color_prompt/force_color_prompt/g" ~/.bashrc
-    echo_point "ajout de PS1 dans .bashrc"
-    echo "export PS1='\[\033[0;37m\]\h:\[\033[0;33m\]\W\[\033[0m\]\[\033[1;32m\]\$(__git_ps1)\[\033[0m\] \$ '" >> ~/.bashrc
-
-} #dev
-
-#function f_download() {
-#    
-#} #f_download
-
-function graphics() {
-    graphic=($(f_graphics))
-    echo_part "Installation d'outils graphiques"
-    for i in "${graphic[@]}"
-    	do
-    apt_install $i
-    	done
-
-    file="XnViewMP-linux-x64.deb"
-    cd /opt 
-    wget_file https://download.xnview.com/${file}
-    dpkg_file $file 
-    
-    file="blender-2.92.0-linux64.tar.xz"
-    wget_file https://download.xnview.com/${file}
-
-} #graphics
-
 function virtu() {
     processeurs=$(grep -E -c "vmx|svm" /proc/cpuinfo)
     echo_point "\e[1;31m$processeurs \e[0;36mprocesseurs compatibles et disponibles\e[m"
@@ -243,23 +221,22 @@ function space() {
 } #space
 
 function help() {
-    basics=$(f_basics)
-    devs=$(f_devs)
-    graphics=$(f_graphics)
-    admin=$(f_admin)
-    client=$(f_client)
+    #basics=$(f_basic)
+    basics=$(f_packages basic)
+    devs=$(f_packages dev)
+    graphics=$(f_packages graphic)
+    admin=$(f_packages admin)
+    client=$(f_packages client)
     echo_part "\nConfiguration script for Debian linux system"
     echo_part "[1;31mGPLv3 \e[0;36mand above"
     echo_part "Pizzacoca 2021"
     
    
-    echo_part "\nHelp (single config)"
+    echo_part "\nHelp (mises à jour et installations)"
     
     echo_step "update    :\e[m apt-get update and full-upgrade -y"
-    echo_step " basic    :\e[m minimal system conf : \e[33m" ${basics[*]// /|}
+    echo_step "basic     :\e[m minimal system conf : \e[33m" ${basics[*]// /|}
     echo_step "client    :\e[m outils client administré : \e[33m" ${client[*]// /|}
-    echo_step "sshclient :\e[m création d'une clef ssh sur le poste client"
-    echo_step "sshadmin  :\e[m ajout de la clef ssh admin sur le poste client"
     echo_step "graphics  :\e[m outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
     echo_step "dev :\e[m   : outils dev : \e[33m" ${devs[*]// /|}
     echo_step "admin     :\e[m : outils admin : \e[33m" ${admin[*]// /|}
@@ -268,13 +245,12 @@ function help() {
     
     echo_step "i0 =\e[m update + basic"
     echo_step "i1 =\e[m i0 + client"
-    echo_step "i2 =\e[m i1 + graphics"
-    echo_step "i3 =\e[m i2 + dev"
-    echo_step "i4 =\e[m i3 + admin"
 
     echo_part "\nHelp (Maintenance)"
 
-    echo_step "space\e[m   : récupération d'espace"
+    echo_step "space     :\e[m récupération d'espace"
+    echo_step "sshclient :\e[m création d'une clef ssh sur le poste client"
+    echo_step "sshadmin  :\e[m ajout de la clef ssh admin sur le poste client"
  
     echo_part "\nHelp (Memo)"
 
@@ -295,9 +271,6 @@ function help() {
 # appel des fonctions
 function i0() { exec $0 update basic $basics; }
 function i1() { exec $0 update basic client; }
-function i2() { exec $0 update basic client graphics; }
-function i3() { exec $0 update basic client graphics dev; }
-function i4() { exec $0 update basic client graphics dev admin; }
 
 [ $# -eq 0 ] && help
 
