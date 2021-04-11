@@ -32,6 +32,7 @@ function install() {
     	do
     wget_file ${site_init}/pub/admin/$i -O ~/.config/client/keys/$i
         done 
+    wget_file ${site_init}/pub/init.sh
 } #install
 
 function help() {
