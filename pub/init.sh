@@ -25,8 +25,8 @@ function install() {
     site_init=$(cat ~/.config/client/sites/site_init)
     echo $site_init 
     echo $rep
-    wget_file ${site}/pub/admin/crgpg -O ${rep}/keys/crgpg
-    wget_file ${site}/pub/admin/crpgpg -O ${rep}/keys/crpgpg
+    wget_file ${site_init}/pub/admin/crgpg -O ${rep}/keys/crgpg
+    wget_file ${site_init}/pub/admin/crpgpg -O ${rep}/keys/crpgpg
     admin=( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
     for i in "${admin[@]}"
     	do
