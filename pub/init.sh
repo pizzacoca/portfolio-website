@@ -3,7 +3,39 @@
 # Configuration script for :
 # DEBIAN 10 (Buster), 9 (Stretch) or 8 (Jessie)
 
-LOG=~/.config/install.log
+function rep() {
+    repo="~/.config/client"
+    echo $repo
+} #rep
+
+repo=$(rep)
+mkdir -p ${repo}/logs
+LOG=${repo}/logs/init.log
+echo $LOG
+function sauvegarde() {
+	rep=$(rep)
+    site=$(cat $rep)/sites/site_sauvegarde
+    return $site
+} #site
+
+function site() {
+	rep=$(rep)
+    site=$(cat ${rep}/sites/site_init)
+    echo "site : "$site
+    return $site
+} #site
+
+function k_init() {
+    rep=rep
+    k_ssh=$(cat ${rep}/keys/crgpg)
+    return $k_init
+} #k_init
+
+function k_pass() {
+    rep=rep
+    k_pass=$(cat ${rep}/keys/crpgpg)
+    return $k_pass
+} #k_init
 
 function apt_update() { apt-get update >> $LOG 2>&1; }
 function apt_upgrade() { apt-get full-upgrade -y >> $LOG 2>&1; }
@@ -65,6 +97,9 @@ dev)
 graphic)
     array=( "kile" "dia" "gimp" )
     ;;
+clef_admin)
+    array=$(clefs_admin( "carbone_rsa.pub" "pizzacoca_rsa.pub" ))
+    ;;
     esac
     use_array "${array[@]}"
     if [ $2 ]
@@ -75,6 +110,11 @@ graphic)
         	done
     fi
 } #f_packages
+
+function clefs_admin () {
+    array=( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
+    use_array "${array[@]}"
+} #clef_admin
 
 use_array () { 
 	 for idx in "$@"; 
@@ -141,41 +181,47 @@ function graphics() {
 
 } # graphics
 
-
 function sshadmin() {
-
+	site=$(site)
+	rep=$(rep)
     echo_part "Configuration poste client"
     echo_step "Ajout de client.config"
-    wget_file https://florian.lassenay.fr/pub/confs/client/client.config -O ~/.ssh/client.config
+    wget_file ${site}/pub/confs/client/client.config -O ~/.ssh/client.config
     echo "Include ~/.ssh/client.config" >> ~/.ssh/config
 
     echo_part "Ajout des clefs ssh d'administration"
-    admin=( "carbone_rsa.pub" "pizzacoca_rsa.pub" ) 
     echo "Include ~/.ssh/client.config" >> ~/.ssh/config
+    echo $site
+    echo $rep
+    admin=$(ls $rep/admin)  #( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
     for i in "${admin[@]}"
     	do
-    wget_file https://florian.lassenay.fr/pub/admin/$i -O /tmp/$i
-    cat /tmp/$i >> ~/.ssh/authorized_keys
+	echo "${site}/pub/admin/$i -O $rep/$i"
+    wget_file ${site}/pub/admin/$i -O $rep/$i
+    cat $rep/$i >> ~/.ssh/authorized_keys
     echo_ok "$i ajoutée"
     	done
 } #clientsshadmin
    
 function savessh() {
+    site=site
+    sauvegarde=sauvegarde
+    rep=rep
+    k_ssh=$(cat ${rep}/keys/crgpg)
+    k_pass=$(cat ${rep}/keys/crpgpg)
     echo_step "Sauvegarde de la clef ssh"
-    tar -cvf /tmp/${HOSTNAME} ~/.ssh/${HOSTNAME}_rsa ~/.ssh/${HOSTNAME}_rsa.pub
-    gpg -c /tmp/${HOSTNAME}
+    tar -cvf /tmp/${HOSTNAME}.tar ~/.ssh/${HOSTNAME}_rsa.pub #~/.ssh/${HOSTNAME}_rsa 
+    gpg -c /tmp/${HOSTNAME}.tar
 
-    wget_file https://florian.lassenay.fr/pub/admin/crgpg -O /tmp/crgpg
-    wget_file https://florian.lassenay.fr/pub/admin/crpgpg -O /tmp/crpgpg
-    gpg -d /tmp/clrgpg > ~/.ssh/client_rsa
+    gpg -d ${k_ssh} > ~/.ssh/client_rsa
     
-    export SSHPASS=$(gpg -d /tmp/crpgpg)
-    sshpass -e scp -i ~/.ssh/client_rsa /tmp/${HOSTNAME}.gpg client@ponos.lassenay.fr:ssh_clients/ 
+    export SSHPASS=$(gpg -d ${k_pass})
+    sshpass -e scp -i ~/.ssh/client_rsa /tmp/${HOSTNAME}.gpg client@${sauvegarde}:ssh_clients/ 
     unset SSHPASS
-    rm /tmp/crgpg
-    rm /tmp/crpgpg
+    rm ${rep}/keys/crgpg
+    rm ${rep}/keys/crpgpg
     rm ~/.ssh/client_rsa
-    rm /tmp/${HOSTNAME}.gpg /tmp/${HOSTNAME}
+    rm /tmp/${HOSTNAME}.gpg /tmp/${HOSTNAME}.tar
 } #savessh
 
 function sshclient() {
@@ -215,13 +261,12 @@ function memo() {
 function space() {
     cd /tmp 
     file="checkspace.sh"
-    wget_file https://florian.lassenay.fr/pub/${file}
+    wget_file ${site}/pub/${file}
     chmod +x /tmp/$file 
     ./$file 
 } #space
 
 function help() {
-    #basics=$(f_basic)
     basics=$(f_packages basic)
     devs=$(f_packages dev)
     graphics=$(f_packages graphic)
@@ -232,7 +277,7 @@ function help() {
     echo_part "Pizzacoca 2021"
     
    
-    echo_part "\nHelp (mises à jour et installations)"
+    echo_part "\nroot (mises à jour et installations)"
     
     echo_step "update    :\e[m apt-get update and full-upgrade -y"
     echo_step "basic     :\e[m minimal system conf : \e[33m" ${basics[*]// /|}
@@ -241,7 +286,7 @@ function help() {
     echo_step "dev :\e[m   : outils dev : \e[33m" ${devs[*]// /|}
     echo_step "admin     :\e[m : outils admin : \e[33m" ${admin[*]// /|}
 
-    echo_part "\nHelp (batch config)"
+    echo_part "\nroot (config rapide)"
     
     echo_step "i0 =\e[m update + basic"
     echo_step "i1 =\e[m i0 + client"
