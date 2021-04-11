@@ -1,6 +1,6 @@
 # !/bin/bash
 
-rep="~/.config/client"
+rep="$HOME/.config/client"
 LOG=${rep}/logs/init.log
 
 function echo_part() { echo "=== $* ===" >> $LOG ; echo -e "\e[0;32m${*}\e[m"; }
