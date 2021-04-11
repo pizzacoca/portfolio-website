@@ -3,36 +3,27 @@
 # Configuration script for :
 # DEBIAN 10 (Buster), 9 (Stretch) or 8 (Jessie)
 
-function rep() {
-    repo="~/.config/client"
-    echo $repo
-} #rep
-
-repo=$(rep)
-mkdir -p ${repo}/logs
-LOG=${repo}/logs/init.log
+rep="~/.config/client"
+mkdir -p ${rep}/logs
+LOG=${rep}/logs/init.log
 echo $LOG
 function sauvegarde() {
-	rep=$(rep)
     site=$(cat $rep)/sites/site_sauvegarde
     return $site
 } #site
 
 function site() {
-	rep=$(rep)
     site=$(cat ${rep}/sites/site_init)
-    echo "site : "$site
+    #echo "site : "$site
     return $site
 } #site
 
 function k_init() {
-    rep=rep
     k_ssh=$(cat ${rep}/keys/crgpg)
     return $k_init
 } #k_init
 
 function k_pass() {
-    rep=rep
     k_pass=$(cat ${rep}/keys/crpgpg)
     return $k_pass
 } #k_init
@@ -183,7 +174,6 @@ function graphics() {
 
 function sshadmin() {
 	site=$(site)
-	rep=$(rep)
     echo_part "Configuration poste client"
     echo_step "Ajout de client.config"
     wget_file ${site}/pub/confs/client/client.config -O ~/.ssh/client.config
@@ -204,9 +194,9 @@ function sshadmin() {
 } #clientsshadmin
    
 function savessh() {
-    site=site
-    sauvegarde=sauvegarde
-    rep=rep
+	site=$(site)
+    sauvegarde=$(sauvegarde)
+    rep=$(rep)
     k_ssh=$(cat ${rep}/keys/crgpg)
     k_pass=$(cat ${rep}/keys/crpgpg)
     echo_step "Sauvegarde de la clef ssh"
