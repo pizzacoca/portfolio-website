@@ -1,6 +1,6 @@
 # !/bin/bash
 
-rep="$HOME/.config/client"
+rep="$HOME/.config/lass"
 LOG=${rep}/logs/init.log
 
 function echo_part() { echo "=== $* ===" >> $LOG ; echo -e "\e[0;32m${*}\e[m"; }
@@ -42,8 +42,9 @@ function help() {
 
     echo_part "\nHelp (single config)"
     
-    echo_step "install\e[m  : initialisation du répertoire de config
-             \n               pour init.sh "
+    echo_step "install\e[m  : initialisation du répertoire de config pour init.sh "
+
+    echo_part "\nfichier log : "$LOG
 
 } # help
 

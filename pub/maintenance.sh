@@ -3,7 +3,7 @@
 # Configuration script for :
 # DEBIAN 10 (Buster), 9 (Stretch) or 8 (Jessie)
 
-rep="~/.config/client"
+rep="~/.config/lass"
 mkdir -p ${rep}/logs
 LOG=${rep}/logs/maintenance.log
 echo $LOG
@@ -77,7 +77,7 @@ basic)
 	    "tcpdump" "rsync" "xpdf" "pass" "sshpass" "gpg" "nmap" )
     ;;
 admin)
-    array=( "net-tools" "x2goclient" "nmap" )
+    array=( "net-tools" "x2goclient" "nmap" "whois" )
     ;;
 client)
     array=( "openssh-server" "x2goserver" "x2goserver-session" )
