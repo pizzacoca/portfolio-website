@@ -3,28 +3,28 @@
 # Configuration script for :
 # DEBIAN 10 (Buster), 9 (Stretch) or 8 (Jessie)
 
-rep="~/.config/lass"
-mkdir -p ${rep}/logs
-LOG=${rep}/logs/maintenance.log
+REP="~/.config/lass"
+mkdir -p ${REP}/logs
+LOG=${REP}/logs/maintenance.log
 echo $LOG
 function sauvegarde() {
-    site=$(cat $rep)/sites/site_sauvegarde
+    site=$(cat $REP)/sites/site_sauvegarde
     return $site
 } #site
 
 function site() {
-    site=$(cat ${rep}/sites/site_init)
+    site=$(cat ${REP}/sites/site_init)
     #echo "site : "$site
     return $site
 } #site
 
 function k_init() {
-    k_ssh=$(cat ${rep}/keys/crgpg)
+    k_ssh=$(cat ${REP}/keys/crgpg)
     return $k_init
 } #k_init
 
 function k_pass() {
-    k_pass=$(cat ${rep}/keys/crpgpg)
+    k_pass=$(cat ${REP}/keys/crpgpg)
     return $k_pass
 } #k_init
 
@@ -182,13 +182,13 @@ function sshadmin() {
     echo_part "Ajout des clefs ssh d'administration"
     echo "Include ~/.ssh/client.config" >> ~/.ssh/config
     echo $site
-    echo $rep
-    admin=$(ls $rep/admin)  #( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
+    echo $REP
+    admin=$(ls $REP/admin)  #( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
     for i in "${admin[@]}"
     	do
-	echo "${site}/pub/admin/$i -O $rep/$i"
-    wget_file ${site}/pub/admin/$i -O $rep/$i
-    cat $rep/$i >> ~/.ssh/authorized_keys
+	echo "${site}/pub/admin/$i -O $REP/$i"
+    wget_file ${site}/pub/admin/$i -O $REP/$i
+    cat $REP/$i >> ~/.ssh/authorized_keys
     echo_ok "$i ajoutée"
     	done
 } #clientsshadmin
@@ -196,9 +196,8 @@ function sshadmin() {
 function savessh() {
 	site=$(site)
     sauvegarde=$(sauvegarde)
-    rep=$(rep)
-    k_ssh=$(cat ${rep}/keys/crgpg)
-    k_pass=$(cat ${rep}/keys/crpgpg)
+    k_ssh=$(cat ${REP}/keys/crgpg)
+    k_pass=$(cat ${REP}/keys/crpgpg)
     echo_step "Sauvegarde de la clef ssh"
     tar -cvf /tmp/${HOSTNAME}.tar ~/.ssh/${HOSTNAME}_rsa.pub #~/.ssh/${HOSTNAME}_rsa 
     gpg -c /tmp/${HOSTNAME}.tar
@@ -208,8 +207,8 @@ function savessh() {
     export SSHPASS=$(gpg -d ${k_pass})
     sshpass -e scp -i ~/.ssh/client_rsa /tmp/${HOSTNAME}.gpg client@${sauvegarde}:ssh_clients/ 
     unset SSHPASS
-    rm ${rep}/keys/crgpg
-    rm ${rep}/keys/crpgpg
+    rm ${REP}/keys/crgpg
+    rm ${REP}/keys/crpgpg
     rm ~/.ssh/client_rsa
     rm /tmp/${HOSTNAME}.gpg /tmp/${HOSTNAME}.tar
 } #savessh

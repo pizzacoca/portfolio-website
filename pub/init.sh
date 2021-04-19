@@ -2,6 +2,23 @@
 
 REP="$HOME/.config/lass"
 LOG=${REP}/logs/init.log
+check_config
+
+check_config() {
+    if [ $HOME/.config]
+    then
+      echo_ok ".config existant"
+    else
+    mkdir -p $REP/logs
+    touch $LOG
+    mkdir_action $REP
+    mkdir_action $REP/logs/
+    mkdir_action $REP/keys/
+    mkdir_action $REP/sites/
+    mkdir_action $HOME/bin/
+    mkdir_action $HOME/.config
+    fi
+} #check_config
 
 function echo_part() { echo "=== $* ===" >> $LOG ; echo -e "\e[0;32m${*}\e[m"; }
 function echo_step() { echo "==> $* ==" >> $LOG; echo -e " \u2022 \e[0;36m${*}\e[m"; }
@@ -17,7 +34,7 @@ function wget_file() {
 
 function mkdir_action() {
     echo_point "création $1" 
-    mkdir $1
+    mkdir -p $1
 } #mkdir_action
 
 function install() {
@@ -39,6 +56,7 @@ function install() {
     wget_file ${site_init}/pub/admin/$i -O $REP/keys/$i
         done 
     wget_file ${site_init}/pub/maintenance.sh
+    chmod +x maintenance.sh
 } #install
 
 function help() {
