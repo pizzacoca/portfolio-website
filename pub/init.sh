@@ -27,7 +27,7 @@ function echo_ok() { echo "=> $* =">> $LOG; echo -e "   \e[1;32m${*}\e[m"; }
 function echo_ko() { echo "=> $* =" >> $LOG; echo -e "   \e[1;31m${*}\e[m"; }
 
 function wget_file() { 
-    echo_step "\e[1;34mDownloading\e[m \e[0;33m$PWD/${file}\e[m"
+    echo_step "\e[1;34mDownloading $1 to \e[m \e[0;33m$PWD/${file}\e[m"
     echo "wget_file $*" >> $LOG 2>&1; wget -nc $* >> $LOG 2&>1
     echo_ok "\e[1;32mOK\e[m"
 } #wget_file
