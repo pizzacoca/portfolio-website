@@ -6,7 +6,7 @@
 REP="$HOME/.config/lass"
 mkdir -p ${REP}/logs
 LOG=${REP}/logs/maintenance.log
-echo $LOG
+
 function sauvegarde() {
     site=$(cat $REP)/sites/site_sauvegarde
     return $site
@@ -182,19 +182,21 @@ function sshadmin() {
 	site=$(site)
     echo_part "Configuration poste client"
     echo_step "Ajout de client.config"
-    wget_file ${site}/pub/confs/client/client.config -O $HOME/.ssh/client.config
+    wget_file ${site}/pub/confs/client/client.config 
+    mv client.config $HOME/.ssh/client.config
+
     echo "Include $HOME/.ssh/client.config" >> $HOME/.ssh/config
 
     echo_part "Ajout des clefs ssh d'administration"
-    echo "Include $HOME/.ssh/client.config" >> $HOME/.ssh/config
     echo $site
     echo $REP
     admin=$(ls $REP/admin)  #( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
     for i in "${admin[@]}"
     	do
-	echo "${site}/pub/admin/$i -O $REP/$i"
-    wget_file ${site}/pub/admin/$i -O $REP/$i
-    cat $REP/$i >> $HOME/.ssh/authorized_keys
+	echo "${site}/pub/admin/$i"
+    wget_file ${site}/pub/admin/$i 
+    cat $i >> $HOME/.ssh/authorized_keys
+    rm $i
     echo_ok "$i ajoutée"
     	done
 } #clientsshadmin
@@ -280,7 +282,7 @@ function help() {
     echo_step "basic     :\e[m minimal system conf : \e[33m" ${basics[*]// /|}
     echo_step "client    :\e[m outils client administré : \e[33m" ${client[*]// /|}
     echo_step "bureau     :\e[m installation bureau : \e[33m" ${bureau[*]// /|}
-    echo_step "network     :\e[m outils réseau : \e[33m" ${bureau[*]// /|}
+    echo_step "network     :\e[m outils réseau : \e[33m" ${network[*]// /|}
     echo_step "graphics  :\e[m outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
     echo_step "dev :\e[m   : outils dev : \e[33m" ${devs[*]// /|}
     echo_step "admin     :\e[m : outils admin : \e[33m" ${admin[*]// /|}
