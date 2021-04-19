@@ -3,7 +3,7 @@
 # Configuration script for :
 # DEBIAN 10 (Buster), 9 (Stretch) or 8 (Jessie)
 
-REP="~/.config/lass"
+REP="$HOME/.config/lass"
 mkdir -p ${REP}/logs
 LOG=${REP}/logs/maintenance.log
 echo $LOG
@@ -73,11 +73,17 @@ function dpkg_file() {
 function f_packages() {
     case $1 in
 basic)
-    array=( "vim" "i3" "redshift" "sudo" "keepass2" "thunar"\
-	    "tcpdump" "rsync" "xpdf" "pass" "sshpass" "gpg" "nmap" )
+    array=( "vim" "sudo" "pass" "gpg" "sshpass" )
     ;;
 admin)
     array=( "net-tools" "x2goclient" "nmap" "whois" )
+    ;;
+bureau)
+    array=( "i3" "redshift" "keepass2" "thunar"\
+	    "xpdf" )
+    ;;
+network)
+    array=( "rsync" "tcpdump" "net-tools" "sshpass" "nmap" )
     ;;
 client)
     array=( "openssh-server" "x2goserver" "x2goserver-session" )
@@ -152,10 +158,10 @@ function dev() {
     echo_part "Mise à jour et installation outils dev"
     f_packages dev 1
     echo_step "\e[36mEdition de bashrc :\e[m"
-    sed -i -e "s/#alias ll/alias ll/g" ~/.bashrc
-    sed -i -e "s/#force_color_prompt/force_color_prompt/g" ~/.bashrc
+    sed -i -e "s/#alias ll/alias ll/g" $HOME/.bashrc
+    sed -i -e "s/#force_color_prompt/force_color_prompt/g" $HOME/.bashrc
     echo_point "ajout de PS1 dans .bashrc"
-    echo "export PS1='\[\033[0;37m\]\h:\[\033[0;33m\]\W\[\033[0m\]\[\033[1;32m\]\$(__git_ps1)\[\033[0m\] \$ '" >> ~/.bashrc
+    echo "export PS1='\[\033[0;37m\]\h:\[\033[0;33m\]\W\[\033[0m\]\[\033[1;32m\]\$(__git_ps1)\[\033[0m\] \$ '" >> $HOME/.bashrc
 
 } #dev
 
@@ -176,11 +182,11 @@ function sshadmin() {
 	site=$(site)
     echo_part "Configuration poste client"
     echo_step "Ajout de client.config"
-    wget_file ${site}/pub/confs/client/client.config -O ~/.ssh/client.config
-    echo "Include ~/.ssh/client.config" >> ~/.ssh/config
+    wget_file ${site}/pub/confs/client/client.config -O $HOME/.ssh/client.config
+    echo "Include $HOME/.ssh/client.config" >> $HOME/.ssh/config
 
     echo_part "Ajout des clefs ssh d'administration"
-    echo "Include ~/.ssh/client.config" >> ~/.ssh/config
+    echo "Include $HOME/.ssh/client.config" >> $HOME/.ssh/config
     echo $site
     echo $REP
     admin=$(ls $REP/admin)  #( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
@@ -188,7 +194,7 @@ function sshadmin() {
     	do
 	echo "${site}/pub/admin/$i -O $REP/$i"
     wget_file ${site}/pub/admin/$i -O $REP/$i
-    cat $REP/$i >> ~/.ssh/authorized_keys
+    cat $REP/$i >> $HOME/.ssh/authorized_keys
     echo_ok "$i ajoutée"
     	done
 } #clientsshadmin
@@ -199,17 +205,17 @@ function savessh() {
     k_ssh=$(cat ${REP}/keys/crgpg)
     k_pass=$(cat ${REP}/keys/crpgpg)
     echo_step "Sauvegarde de la clef ssh"
-    tar -cvf /tmp/${HOSTNAME}.tar ~/.ssh/${HOSTNAME}_rsa.pub #~/.ssh/${HOSTNAME}_rsa 
+    tar -cvf /tmp/${HOSTNAME}.tar $HOME/.ssh/${HOSTNAME}_rsa.pub #$HOME/.ssh/${HOSTNAME}_rsa 
     gpg -c /tmp/${HOSTNAME}.tar
 
-    gpg -d ${k_ssh} > ~/.ssh/client_rsa
+    gpg -d ${k_ssh} > $HOME/.ssh/client_rsa
     
     export SSHPASS=$(gpg -d ${k_pass})
-    sshpass -e scp -i ~/.ssh/client_rsa /tmp/${HOSTNAME}.gpg client@${sauvegarde}:ssh_clients/ 
+    sshpass -e scp -i $HOME/.ssh/client_rsa /tmp/${HOSTNAME}.gpg client@${sauvegarde}:ssh_clients/ 
     unset SSHPASS
     rm ${REP}/keys/crgpg
     rm ${REP}/keys/crpgpg
-    rm ~/.ssh/client_rsa
+    rm $HOME/.ssh/client_rsa
     rm /tmp/${HOSTNAME}.gpg /tmp/${HOSTNAME}.tar
 } #savessh
 
@@ -219,7 +225,7 @@ function sshclient() {
     ssh-keygen -t rsa -b 4096
     savessh
     #echo_step "parametrage de GIT_SSH_COMMAND"
-    #nomclef=$(ls ~/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
+    #nomclef=$(ls $HOME/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
     #echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
  
 } #clientssh
@@ -231,14 +237,14 @@ function virtu() {
 function memo() {
     echo -e " \u2022 \e[36mPour ajouter le GIT_SSH_COMMAND taper :\e[m"
     variable=$(cat /etc/hostname)
-    nomclef=$(ls ~/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
+    nomclef=$(ls $HOME/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
     echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
     
     echo -e " \u2022 \e[36mCréer une clef ssh\e[m"
     echo "ssh-keygen -t rsa -b 4096"
 
     eval "$(ssh-agent -s)"
-    echo "ssh-add ~/.ssh/"$nomclef
+    echo "ssh-add $HOME/.ssh/"$nomclef
     
     echo -e " \u2022 \e[36mAjouter le sudoer\e[m"
     echo -e "   \e[31msudo usermod -a -G sudo username\e[m"
@@ -271,6 +277,7 @@ function help() {
     echo_step "update    :\e[m apt-get update and full-upgrade -y"
     echo_step "basic     :\e[m minimal system conf : \e[33m" ${basics[*]// /|}
     echo_step "client    :\e[m outils client administré : \e[33m" ${client[*]// /|}
+    echo_step "bureau     :\e[m minimal system conf : \e[33m" ${bureau[*]// /|}
     echo_step "graphics  :\e[m outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
     echo_step "dev :\e[m   : outils dev : \e[33m" ${devs[*]// /|}
     echo_step "admin     :\e[m : outils admin : \e[33m" ${admin[*]// /|}
