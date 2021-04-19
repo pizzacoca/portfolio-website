@@ -223,7 +223,7 @@ function sshclient() {
     echo_step "\e[36mGénération d'une clef ssh\e[m"
     echo_point -e "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
     ssh-keygen -t rsa -b 4096
-    savessh
+    #savessh
     #echo_step "parametrage de GIT_SSH_COMMAND"
     #nomclef=$(ls $HOME/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
     #echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
@@ -267,6 +267,8 @@ function help() {
     graphics=$(f_packages graphic)
     admin=$(f_packages admin)
     client=$(f_packages client)
+    bureau=$(f_packages bureau) 
+    network=$(f_packages network) 
     echo_part "\nConfiguration script for Debian linux system"
     echo_part "[1;31mGPLv3 \e[0;36mand above"
     echo_part "Pizzacoca 2021"
@@ -277,7 +279,8 @@ function help() {
     echo_step "update    :\e[m apt-get update and full-upgrade -y"
     echo_step "basic     :\e[m minimal system conf : \e[33m" ${basics[*]// /|}
     echo_step "client    :\e[m outils client administré : \e[33m" ${client[*]// /|}
-    echo_step "bureau     :\e[m minimal system conf : \e[33m" ${bureau[*]// /|}
+    echo_step "bureau     :\e[m installation bureau : \e[33m" ${bureau[*]// /|}
+    echo_step "network     :\e[m outils réseau : \e[33m" ${bureau[*]// /|}
     echo_step "graphics  :\e[m outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
     echo_step "dev :\e[m   : outils dev : \e[33m" ${devs[*]// /|}
     echo_step "admin     :\e[m : outils admin : \e[33m" ${admin[*]// /|}
@@ -292,6 +295,7 @@ function help() {
     echo_step "space     :\e[m récupération d'espace"
     echo_step "sshclient :\e[m création d'une clef ssh sur le poste client"
     echo_step "sshadmin  :\e[m ajout de la clef ssh admin sur le poste client"
+    echo_step "savessh     :\e[m sauvegarde des clefs ssh perso"
  
     echo_part "\nHelp (Memo)"
 
