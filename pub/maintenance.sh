@@ -236,7 +236,13 @@ function virtu() {
     echo_point "\e[1;31m$processeurs \e[0;36mprocesseurs compatibles et disponibles\e[m"
     mkdir kvm2
     cd kvm2 
-    wget florian.lassenay.fr/pub/kvm/* 
+    wget florian.lassenay.fr/pub/kvm/01-verif-serveur-kvm.sh
+    wget florian.lassenay.fr/pub/kvm/02-install-serveur-kvm.sh
+    wget florian.lassenay.fr/pub/kvm/03-reseau-serveur.sh
+    wget florian.lassenay.fr/pub/kvm/04-gestion-graphique-serveur.sh
+    wget florian.lassenay.fr/pub/kvm/05-ajout-user.sh
+    wget florian.lassenay.fr/pub/kvm/102-remove-serveur-kvm.sh
+    wget florian.lassenay.fr/pub/kvm/serveur-kvm.sh
 } #verif_virtu
 
 function memo() {
