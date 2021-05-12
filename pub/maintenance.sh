@@ -76,7 +76,7 @@ basic)
     array=( "vim" "sudo" "pass" "gpg" "sshpass" )
     ;;
 admin)
-    array=( "net-tools" "x2goclient" "nmap" "whois" )
+    array=( "net-tools" "x2goclient" "nmap" "whois" "meld")
     ;;
 bureau)
     array=( "i3" "redshift" "keepass2" "thunar"\
