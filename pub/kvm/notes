@@ -1,0 +1,13 @@
+#####################################
+## Lisica
+#####################################
+Personnellement j’ai mon 
+qemu qui lance ma Vm Windows au démarrage, 
+le kernel lui passe mon deuxième gpu...
+Donc un écran Linux et un Windaube
+
+[00:59] VouivreSica (Lisica): 
+pilotes gentillemenr dev par les gens de redhat (ou fedora ?) 
+bref “virtio” pour gérer les trois disques durs que j’ai passé à Windows avec des bonnes perfs,
+EvDev pour passer l’input clavier souris d’une machine à l’autre sans matériel supplémentaire,
+Pour le son j’utilise scream + un periph virtuel de partage de mémoire, dans lequel pulse audio /alsa peut lire directement (élimine les délais )

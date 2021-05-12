@@ -234,6 +234,9 @@ function sshclient() {
 function virtu() {
     processeurs=$(grep -E -c "vmx|svm" /proc/cpuinfo)
     echo_point "\e[1;31m$processeurs \e[0;36mprocesseurs compatibles et disponibles\e[m"
+    mkdir kvm2
+    cd kvm2 
+    wget florian.lassenay.fr/pub/kvm/* 
 } #verif_virtu
 
 function memo() {
