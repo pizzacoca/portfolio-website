@@ -73,7 +73,7 @@ function dpkg_file() {
 function f_packages() {
     case $1 in
 basic)
-    array=( "vim" "sudo" "pass" "gpg" "sshpass" )
+    array=( "vim" "sudo" "pass" "gpg" "sshpass" "mcrypt" )
     ;;
 admin)
     array=( "net-tools" "x2goclient" "nmap" "whois" "meld")
@@ -221,16 +221,23 @@ function savessh() {
     rm /tmp/${HOSTNAME}.gpg /tmp/${HOSTNAME}.tar
 } #savessh
 
+function sshGen() {
+    echo_step "\e[36mGénération de la clef ssh $1\e[m"
+    #echo_point -e "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
+    ssh-keygen -t rsa -b 4096 -f $1
+ 
+} #sshGen
+
 function sshclient() {
-    echo_step "\e[36mGénération d'une clef ssh\e[m"
-    echo_point -e "nom de la clef : "$HOME"/.ssh/"$HOSTNAME"_rsa"
-    ssh-keygen -t rsa -b 4096
+    clef=$HOME"/.ssh/"$HOSTNAME"_rsa"
+    sshGen $clef
     #savessh
     #echo_step "parametrage de GIT_SSH_COMMAND"
     #nomclef=$(ls $HOME/.ssh/ | grep $variable | grep -v "pub" | grep -v "no_rsa")
     #echo "export GIT_SSH_COMMAND='ssh -i "$HOME"/.ssh/"$nomclef"' git clone" 
  
 } #clientssh
+
 function virtu() {
     processeurs=$(grep -E -c "vmx|svm" /proc/cpuinfo)
     echo_point "\e[1;31m$processeurs \e[0;36mprocesseurs compatibles et disponibles\e[m"
@@ -272,6 +279,70 @@ function space() {
     ./$file 
 } #space
 
+function getInfos() {
+	cat infos.txt | grep $1 | cut -d: -f2
+} #getInfos
+
+function openssh() {
+    clef=$HOME"/.ssh/"$HOSTNAME"_no_rsa"
+    if [ "$clef" ];then
+        echo_ko "$clef existe déja";
+    else
+        question="Voulez-vous créer une clef ssh sans mot de passe ?"
+        askYesNo "$question"
+        choixClef=$?
+        if [ $choixClef -eq 1 ]; then
+            sshGen $clef
+        fi
+    fi
+    echo_part "Génération du script autossh"
+    clef=$(ls $HOME/.ssh/ | grep no_rsa)
+    #ssh_server=$(cat ref | grep ssh_server | cut -d: -f2 )
+    ssh_server=$( getInfos ssh_server )
+    #ssh_server=$(awk '{print $2}' "$server") 
+    echo "#!/bin/sh
+    ssh -N -f -R 22227:localhost:22222 $HOSTNAME@$ssh_server -p 22222 -i $HOME/.ssh/$clef -vvv &
+    " #> /usr/bin/openssh
+    echo_part "Récupération de clients.config"
+    sshFile=$( getInfos admin_files )
+    wget $sshFile"/clients.config" 
+    echo_part "Enrichissement de clients.config"
+    #numPort=$(cat admin/clients.config | grep port | awk '{print $2}' | tail -1)
+    numPort=$(cat clients.config | grep port | awk '{print $2}' | tail -1)
+    let "numPort=$numPort + 1"
+    echo "
+Host		$HOSTNAME.$ssh_server
+port		$numPort" >> clients.config
+    echo_part "Export de la configuration"
+    wget $sshFile"/id_client_ponos_rsa.nc" 
+    mcrypt -d id_client_ponos_rsa.nc
+    scp client@$ssh_server:archives/clients.config -i ./id_client_ponos_rsa
+
+
+} #openssh
+
+function askYesNo() {
+        QUESTION=$1
+        DEFAULT=$2
+        if [ "$DEFAULT" = true ]; then                    # Valeur par défaut définie en paramètre
+                OPTIONS="[O/n]"
+                DEFAULT="o"
+            else
+                OPTIONS="[o/N]"
+                DEFAULT="n"
+        fi
+        #read -p "$QUESTION $OPTIONS" -n 1 -s -r INPUT    # Execute au premier caractère (-n 1)
+        read -p "$QUESTION $OPTIONS" INPUT 
+        INPUT=${INPUT:-${DEFAULT}}                        # Si $INPUT vide => remplace par $DEFAULT
+        #echo_part ${INPUT}
+        if [[ "$INPUT" =~ ^[yYoO]$ ]]; then               # True si y,Y,O ou o
+            return 1
+	    #ANSWER=true
+        else                                              # Faux pour le reste
+            return 0
+	    #ANSWER=false
+        fi
+} #askYesNo
 function help() {
     basics=$(f_packages basic)
     devs=$(f_packages dev)
@@ -295,6 +366,7 @@ function help() {
     echo_step "graphics  :\e[m outils graphiques : \e[33m" ${graphics[*]// /|} blender XnView-MP
     echo_step "dev :\e[m   : outils dev : \e[33m" ${devs[*]// /|}
     echo_step "admin     :\e[m : outils admin : \e[33m" ${admin[*]// /|}
+    echo_step "openssh     :\e[m : cron openssh : \e[33m"
 
     echo_part "\nroot (config rapide)"
     
