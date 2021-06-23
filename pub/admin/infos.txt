@@ -1,0 +1,4 @@
+admin_files:florian.lassenay.fr/pub/admin
+name_ssh_server:ponos.pizzacoca.fr
+ip_ssh_server:51.75.254.62
+port_ssh_server:22222

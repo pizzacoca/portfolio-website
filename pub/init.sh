@@ -1,8 +1,23 @@
 # !/bin/bash
 
-REP="$HOME/.config/lass"
+REP="$HOME/.config/pizzacoca"
 LOG=${REP}/logs/init.log
-check_config
+function echo_part() { echo "=== $* ===" >> $LOG ; echo -e "\e[0;32m${*}\e[m"; }
+function echo_step() { echo "==> $* ==" >> $LOG; echo -e " \u2022 \e[0;36m${*}\e[m"; }
+function echo_point() { echo "=> $* =" >> $LOG; echo -e "   \e[0;32m${*}\e[m"; }
+function echo_ok() { echo "=> $* =">> $LOG; echo -e "   \e[1;32m${*}\e[m"; }
+function echo_ko() { echo "=> $* =" >> $LOG; echo -e "   \e[1;31m${*}\e[m"; }
+
+function wget_file() { 
+    echo_step "\e[1;34mDownloading $1 to \e[m \e[0;33m$REP/${file}\e[m"
+    echo "wget_file $*" >> $LOG 2>&1; wget -nc $* >> $LOG 2&>1
+    echo_ok "\e[1;32mOK\e[m"
+} #wget_file
+
+function mkdir_action() {
+    echo_point "création $1" 
+    mkdir -p $1
+} #mkdir_action
 
 check_config() {
     if [ $HOME/.config]
@@ -20,34 +35,25 @@ check_config() {
     fi
 } #check_config
 
-function echo_part() { echo "=== $* ===" >> $LOG ; echo -e "\e[0;32m${*}\e[m"; }
-function echo_step() { echo "==> $* ==" >> $LOG; echo -e " \u2022 \e[0;36m${*}\e[m"; }
-function echo_point() { echo "=> $* =" >> $LOG; echo -e "   \e[0;32m${*}\e[m"; }
-function echo_ok() { echo "=> $* =">> $LOG; echo -e "   \e[1;32m${*}\e[m"; }
-function echo_ko() { echo "=> $* =" >> $LOG; echo -e "   \e[1;31m${*}\e[m"; }
+check_config
 
-function wget_file() { 
-    echo_step "\e[1;34mDownloading $1 to \e[m \e[0;33m$REP/keys/${file}\e[m"
-    echo "wget_file $*" >> $LOG 2>&1; wget -nc $* >> $LOG 2&>1
-    echo_ok "\e[1;32mOK\e[m"
-} #wget_file
-
-function mkdir_action() {
-    echo_point "création $1" 
-    mkdir -p $1
-} #mkdir_action
 
 function install() {
+    echo "site de récupération ?"
+    read -r site_init
+    echo $site_init 
+    cd $REP
+    echo $REP
     mkdir_action $REP
     mkdir_action $REP/logs/
     mkdir_action $REP/keys/
     mkdir_action $REP/sites/
     mkdir_action $HOME/bin/
-    echo "https://florian.lassenay.fr" > $REP/sites/site_init
-    echo "ponos.pizzacoca.fr" > $REP/sites/site_sauvegarde
-    site_init=$(cat $REP/sites/site_init)
-    echo $site_init 
     echo $REP
+    wget_file ${site_init}/pub/admin/infos.txt -O ${REP}
+    #echo "https://florian.lassenay.fr" > $REP/sites/site_init
+    #echo "ponos.pizzacoca.fr" > $REP/sites/site_sauvegarde
+    #site_init=$(cat $REP/sites/site_init)
     wget_file ${site_init}/pub/admin/crgpg -O ${REP}/keys/crgpg
     wget_file ${site_init}/pub/admin/crpgpg -O ${REP}/keys/crpgpg
     admin=( "carbone_rsa.pub" "pizzacoca_rsa.pub" )
@@ -55,8 +61,9 @@ function install() {
     	do
     wget_file ${site_init}/pub/admin/$i -O $REP/keys/$i
         done 
-    wget_file ${site_init}/pub/maintenance.sh
-    chmod +x maintenance.sh
+    wget_file ${site_init}/pub/admin/maintenance.sh -O ${REP}/maintenance.sh
+    cd $REP
+    chmod +x ${REP}/maintenance.sh
 } #install
 
 function help() {
@@ -74,7 +81,6 @@ function help() {
 
 
 [ $# -eq 0 ] && help
-
 
 echo -e "Configure : $*" >> $LOG
 echo -e "$(date)" >> $LOG

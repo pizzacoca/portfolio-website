@@ -48,14 +48,6 @@ function wget_file() {
     echo_ok "\e[1;32mOK\e[m"
 } #wget_file
 
-function test(){
-    echo_part "ok"
-	echo_step "ok"
-	echo_ok "ok"
-	echo_ko "KO"
-	echo_point "\e[1;32mok\e[m"
-} #test
-
 function dpkg_file() {
     echo_step "\e[36mInstalling\e[m \e[0;33m${file} ...\e[m"
     #sudo dpkg -i $file >> $LOG 2>&1
@@ -283,7 +275,23 @@ function getInfos() {
 	cat infos.txt | grep $1 | cut -d: -f2
 } #getInfos
 
+function motdepasse() {
+    read -r -s mdp
+    echo $mdp
+} #motdepasse
+
+function test(){
+    echo -n "Votre mot de passe : "
+    mdp=$(motdepasse)
+    #export SSHPASS=$mdp
+    echo_part $mdp
+} #test
+
+
 function openssh() {
+    echo -n "Votre mot de passe : "
+    mdp=$(motdepasse)
+    #motdepasse
     clef=$HOME"/.ssh/"$HOSTNAME"_no_rsa"
     if [ "$clef" ];then
         echo_ko "$clef existe déja";
@@ -295,28 +303,44 @@ function openssh() {
             sshGen $clef
         fi
     fi
-    echo_part "Génération du script autossh"
-    clef=$(ls $HOME/.ssh/ | grep no_rsa)
-    #ssh_server=$(cat ref | grep ssh_server | cut -d: -f2 )
-    ssh_server=$( getInfos ssh_server )
-    #ssh_server=$(awk '{print $2}' "$server") 
-    echo "#!/bin/sh
-    ssh -N -f -R 22227:localhost:22222 $HOSTNAME@$ssh_server -p 22222 -i $HOME/.ssh/$clef -vvv &
-    " #> /usr/bin/openssh
+    
     echo_part "Récupération de clients.config"
     sshFile=$( getInfos admin_files )
     wget $sshFile"/clients.config" 
-    echo_part "Enrichissement de clients.config"
-    #numPort=$(cat admin/clients.config | grep port | awk '{print $2}' | tail -1)
+
+    echo_part "Génération du script autossh"
+
+    clef=$(ls $HOME/.ssh/ | grep no_rsa)
+    echo_step "Clef utilisée : $clef"
+
+    ssh_server=$( getInfos name_ssh_server )
+    echo_step "Serveur ssh : $ssh_server"
+
+    port_ssh_server=$( getInfos port_ssh_server )
+    echo_step "Serveur ssh : $ssh_server"
+
     numPort=$(cat clients.config | grep port | awk '{print $2}' | tail -1)
-    let "numPort=$numPort + 1"
+    let "numPort=$numPort + 1"   
+    echo_step "Port : $numPort"
+
+    echo "#!/bin/sh
+    ssh -N -f -R $numPort:localhost:$port_ssh_server $HOSTNAME@$ssh_server -p $port_ssh_server -i $HOME/.ssh/$clef -vvv &
+    " #> /usr/bin/openssh
+    
+    echo_part "Enrichissement de clients.config"
     echo "
 Host		$HOSTNAME.$ssh_server
 port		$numPort" >> clients.config
+
     echo_part "Export de la configuration"
+    ip_ssh_server=$( getInfos ip_ssh_server )
     wget $sshFile"/id_client_ponos_rsa.nc" 
     mcrypt -d id_client_ponos_rsa.nc
-    scp client@$ssh_server:archives/clients.config -i ./id_client_ponos_rsa
+    #sshpass -p $mdp scp -P 22222 -i ./id_client_ponos_rsa \
+    scp -P 22222 -i ./id_client_ponos_rsa \
+	    clients.config \
+	    client@$ip_ssh_server:archives/clients.config  
+    rm id_client_ponos_rsa id_client_ponos_rsa.nc clients.config
 
 
 } #openssh
