@@ -7,6 +7,8 @@ REP="$HOME/.config/lass"
 mkdir -p ${REP}/logs
 LOG=${REP}/logs/maintenance.log
 
+source affichage.sh
+
 function sauvegarde() {
     site=$(cat $REP)/sites/site_sauvegarde
     return $site
@@ -35,12 +37,6 @@ function apt_install() {
     apt-get install $* -qy >> $LOG 2>&1 
     echo_point "\e[1;32mOK\e[m"
 } #apt_install
-
-function echo_part() { echo "=== $* ===" >> $LOG; echo -e "\e[0;32m${*}\e[m"; }
-function echo_step() { echo "==> $* ==" >> $LOG; echo -e " \u2022 \e[0;36m${*}\e[m"; }
-function echo_point() { echo "=> $* =" >> $LOG; echo -e "   \e[0;32m${*}\e[m"; }
-function echo_ok() { echo "=> $* =" >> $LOG; echo -e "   \e[1;32m${*}\e[m"; }
-function echo_ko() { echo "=> $* =" >> $LOG; echo -e "   \e[1;31m${*}\e[m"; }
 
 function wget_file() { 
     echo_step "\e[1;34mDownloading\e[m \e[0;33m$PWD/${file}\e[m"
@@ -302,11 +298,12 @@ function openssh() {
         if [ $choixClef -eq 1 ]; then
             sshGen $clef
         fi
+	echo_ok "création $clef"
     fi
     
     echo_part "Récupération de clients.config"
     sshFile=$( getInfos admin_files )
-    wget $sshFile"/clients.config" 
+    wget_file $sshFile"/clients.config" 
 
     echo_part "Génération du script autossh"
 
@@ -316,6 +313,9 @@ function openssh() {
     ssh_server=$( getInfos name_ssh_server )
     echo_step "Serveur ssh : $ssh_server"
 
+    ip_ssh_server=$( getInfos ip_ssh_server )
+    echo "$ssh_server    $ip_ssh_server" >> /etc/hosts
+
     port_ssh_server=$( getInfos port_ssh_server )
     echo_step "Serveur ssh : $ssh_server"
 
@@ -324,8 +324,12 @@ function openssh() {
     echo_step "Port : $numPort"
 
     echo "#!/bin/sh
-    ssh -N -f -R $numPort:localhost:$port_ssh_server $HOSTNAME@$ssh_server -p $port_ssh_server -i $HOME/.ssh/$clef -vvv &
-    " #> /usr/bin/openssh
+    ssh -N -f -R $numPort:localhost:$port_ssh_server client@$ssh_server -p $port_ssh_server -i $HOME/.ssh/$clef -vvv &
+    " > /usr/bin/openssh
+    chmod +x /usr/bin/openssh
+
+    echo_part "installation du cron"
+    crontab -l | { cat; echo "* 1 * * * /usr/bin/openssh"; } | crontab -
     
     echo_part "Enrichissement de clients.config"
     echo "
@@ -334,7 +338,7 @@ port		$numPort" >> clients.config
 
     echo_part "Export de la configuration"
     ip_ssh_server=$( getInfos ip_ssh_server )
-    wget $sshFile"/id_client_ponos_rsa.nc" 
+    wget_file $sshFile"/id_client_ponos_rsa.nc" 
     mcrypt -d id_client_ponos_rsa.nc
     #sshpass -p $mdp scp -P 22222 -i ./id_client_ponos_rsa \
     scp -P 22222 -i ./id_client_ponos_rsa \

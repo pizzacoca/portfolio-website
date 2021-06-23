@@ -50,7 +50,7 @@ function install() {
     mkdir_action $REP/sites/
     mkdir_action $HOME/bin/
     echo $REP
-    wget_file ${site_init}/pub/admin/infos.txt -O ${REP}
+    wget_file ${site_init}/pub/admin/infos.txt -O ${REP}/infos.txt
     #echo "https://florian.lassenay.fr" > $REP/sites/site_init
     #echo "ponos.pizzacoca.fr" > $REP/sites/site_sauvegarde
     #site_init=$(cat $REP/sites/site_init)
